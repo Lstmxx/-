@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <div>
+    <canvas id="canvas" style="background: black"></canvas>
+  </div>
+</body>
+<script>
+  function initCanvas () {
+      let canvas = document.getElementById('canvas')
+      let context = canvas.getContext('2d')
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      let ch = canvas.height
+      let cw = canvas.width
+      // class Flashpoint {
+      //   constructor (w, h) {
+      //     this.targetLocation = {
+      //       x: w,
+      //       y: h
+      //     }
+      //     this.radius = 1
+      //     this.anotherRadius = 0
+      //     this.isPlus = false
+      //   }
+      //   draw () {
+      //     context.beginPath()
+      //     context.arc(this.targetLocation.x, this.targetLocation.y, Math.abs(this.radius), 0, Math.PI * 2)
+      //     context.lineWidth = 2
+      //     context.strokeStyle = `rgb(${Math.floor(Math.random() * 254 + 1)},${Math.floor(Math.random() * 254 + 1)},${Math.floor(Math.random() * 254 + 1)})`
+      //     context.stroke()
+      //   }
+      //   update () {
+      //     if (this.radius >= 5) {
+      //       this.radius = 1
+      //     } else {
+      //       this.radius += 0.3
+      //     }
+      //   }
+      //   init () {
+      //     try {
+      //       this.draw()
+      //       this.update()
+      //     } catch (e) {
+      //     }
+      //   }
+      // }
+      class Biubiubiu {
+        constructor (startX, startY, targetX, targetY) {
+          this.startLocation = {
+            x: startX,
+            y: startY
+          }
+          this.targetLocation = {
+            x: targetX,
+            y: targetY
+          }
+          this.headNowLocation = {
+            x: startX,
+            y: startY
+          }
+          this.tailNowLocation = {
+            x: startX,
+            y: startY
+          }
+          this.targetDistance = this.getDistance(this.startLocation.x, this.startLocation.y, this.targetLocation.x, this.targetLocation.y)
+          this.speed = 1
+          this.a = 1.02
+          this.angle = Math.atan2(this.targetLocation.y - this.startLocation.y, this.targetLocation.x - this.startLocation.x)
+          this.collection = new Array(10)
+          this.arrived = false
+        }
+        draw () {
+          context.beginPath()
+          context.moveTo(this.tailNowLocation.x, this.tailNowLocation.y)
+          context.lineWidth = 2
+          context.lineCap = 'round'
+          context.lineTo(this.headNowLocation.x, this.headNowLocation.y)
+          context.strokeStyle = `rgb(${Math.floor(Math.random() * 254 + 1)},${Math.floor(Math.random() * 254 + 1)},${Math.floor(Math.random() * 254 + 1)})`
+          context.stroke()
+        }
+        update () {
+          this.speed *= this.a
+          let vx = Math.cos(this.angle) * this.speed
+          let vy = Math.sin(this.angle) * this.speed
+          let headDistance = this.getDistance(this.startLocation.x, this.startLocation.y, this.headNowLocation.x + vx, this.headNowLocation.y + vy)
+          let tailDistance = this.getDistance(this.startLocation.x, this.startLocation.y, this.tailNowLocation.x + 1.1 * vx, this.tailNowLocation.y + 1.1 * vy)
+          if (headDistance >= this.targetDistance) {
+            this.headNowLocation.x += vx
+            this.headNowLocation.y += vy
+            this.arrived = true
+          } else {
+            this.headNowLocation.x += vx
+            this.headNowLocation.y += vy
+            if (tailDistance >= this.targetDistance) {
+              this.tailNowLocation.x = this.targetLocation.x
+              this.tailNowLocation.y = this.targetLocation.y
+            } else {
+              this.tailNowLocation.x += 1.1 * vx
+              this.tailNowLocation.y += 1.1 * vy
+            }
+            this.arrived = false
+          }
+        }
+        init () {
+          this.draw()
+          this.update()
+        }
+        getDistance (x0, y0, x1, y1) {
+          let distanceX = x1 - x0
+          let distanceY = y1 - y0
+          return Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2))
+        }
+      }
+      class Boom {
+        constructor (startX, startY) {
+          this.startLocation = {
+            x: startX,
+            y: startY
+          }
+          this.nowLocation = {
+            x: startX,
+            y: startY
+          }
+          // this.speed = Math.random() * 2
+          this.a = 0.95
+          this.radius = 1
+          this.angle = Math.random() * Math.PI * 2
+          this.speed = Math.random() * 10 + 2
+          this.gravity = 0.98
+          this.alpha = 1
+          this.decay = 0.015
+          this.targetCount = 100
+          this.now = 1
+          this.arrived = false
+        }
+        draw () {
+          context.beginPath()
+          context.arc(this.nowLocation.x, this.nowLocation.y, this.radius, 0, Math.PI * 2)
+          context.lineWidth = 2
+          context.strokeStyle = `rgb(${Math.floor(Math.random() * 254 + 1)},${Math.floor(Math.random() * 254 + 1)},${Math.floor(Math.random() * 254 + 1)}, ${this.alpha})`
+          context.stroke()
+        }
+        update () {
+          this.speed *= this.a
+          let vx = Math.cos(this.angle) * this.speed
+          let vy = Math.sin(this.angle) * this.speed + this.gravity
+          this.nowLocation.x += vx
+          this.nowLocation.y += vy
+          if (this.now < this.targetCount) {
+            this.now++
+          } else {
+            this.alpha -= 0.1
+          }
+          if (this.alpha <= 0) {
+            this.arrived = true
+          }
+        }
+        init () {
+          this.draw()
+          this.update()
+        }
+      }
+      class Animate {
+        constructor () {
+        }
+        run () {
+          window.requestAnimationFrame(this.run.bind(this))
+          context.clearRect(0, 0, cw, ch)
+          for (let index = 0; index < 20; index++) {
+            if (lines[index].arrived) {
+              for (let BoomIndex = 0; BoomIndex < 20; BoomIndex++) {
+                if (booms[index][BoomIndex].arrived) {
+                  let targetX = Math.random() * (cw / 2) + cw / 4
+                  let targetY = Math.random() * ch / 2
+                  let boomPoints = []
+                  // flashPoints[index] = new Flashpoint(targetX, targetY)
+                  lines[index] = new Biubiubiu(Math.random() * cw, ch, targetX, targetY)
+                  for (let boomIndex = 0; boomIndex < 20; boomIndex++) {
+                    boomPoints.push(new Boom(targetX, targetY))
+                  }
+                  booms[index] = boomPoints
+                } else {
+                  booms[index][BoomIndex].init()
+                }
+              }
+            } else {
+              lines[index].init()
+              // flashPoints[index].init()
+            }
+          }
+        }
+      }
+      // let flashPoints = []
+      let lines = []
+      let booms = []
+      for (let index = 0; index < 20; index++) {
+        let targetX = Math.random() * (cw / 2) + cw / 4
+        let targetY = Math.random() * ch / 2
+        let boomPoints = []
+        // flashPoints.push(new Flashpoint(targetX, targetY))
+        lines.push(new Biubiubiu(Math.random() * cw, ch, targetX, targetY))
+        for (let boomIndex = 0; boomIndex < 20; boomIndex++) {
+          boomPoints.push(new Boom(targetX, targetY))
+        }
+        booms.push(boomPoints)
+      }
+      let a = new Animate()
+      a.run()
+    }
+    initCanvas()
+</script>
+</html>
